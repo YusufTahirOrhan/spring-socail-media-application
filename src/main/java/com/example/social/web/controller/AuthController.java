@@ -1,7 +1,7 @@
 package com.example.social.web.controller;
 
 import com.example.social.service.AuthService;
-import com.example.social.web.AuthDTOs;
+import com.example.social.web.dto.AuthDTOs;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +38,6 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<AuthDTOs.MeResponse> me(){
         var currentUser = authService.requireCurrent();
-        return ResponseEntity.ok(new AuthDTOs.MeResponse(currentUser.id, currentUser.username, currentUser.role.name()));
+        return ResponseEntity.ok(new AuthDTOs.MeResponse(currentUser.id(), currentUser.username(), currentUser.role().name()));
     }
 }

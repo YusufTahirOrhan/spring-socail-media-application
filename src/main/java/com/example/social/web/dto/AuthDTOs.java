@@ -1,4 +1,4 @@
-package com.example.social.web;
+package com.example.social.web.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

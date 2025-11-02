@@ -89,11 +89,11 @@ public class AuthService {
     }
 
     public CurrentUser requireCurrent(){
-        var cu = CurrentUserHolder.get();
-        if(cu == null){
+        var currentUser = CurrentUserHolder.get();
+        if(currentUser == null){
             throw new UnauthorizedException("Missing or invalid token");
         }
-        return cu;
+        return currentUser;
     }
 
     public record LoginResult(String accessToken, long expiresInSeconds) {}
