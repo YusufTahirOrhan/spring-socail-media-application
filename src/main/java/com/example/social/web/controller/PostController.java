@@ -61,7 +61,7 @@ public class PostController {
     @PostMapping("/posts/{id}/view")
     public ResponseEntity<Void> view(@PathVariable Long id){
         postService.incrementView(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/posts")

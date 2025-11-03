@@ -28,7 +28,7 @@ public class AuthService {
     private final AppProperties props;
 
     @Transactional
-    public void signup(String username, String password){
+    public User signup(String username, String password){
         users.findUserByUsername(username).ifPresent(u -> {
             throw new IllegalArgumentException("Username already exists!");
         });
@@ -40,23 +40,25 @@ public class AuthService {
                 .deleted(false)
                 .createdAt(Instant.now())
                 .build();
-        users.save(user);
+        return users.save(user);
     }
 
     @Transactional
     public LoginResult login(String username, String password, String userAgent, String ip){
         var user = users.findUserByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not found!"));
+
+
         var result = BCrypt.verifyer().verify(password.toCharArray(), user.getPasswordHash());
 
-        if (!result.verified){
+        if (!result.verified || user.isDeleted()) {
             throw new UnauthorizedException("Invalid credentials");
         }
 
         int lengthBytes = props.getAuth().getToken().getLengthBytes();
         byte[] raw = TokenUtils.randomBytes(lengthBytes);
         String rawEncoded = Base64.getUrlEncoder().withoutPadding().encodeToString(raw);
-        String hash = TokenUtils.sha256Hex(raw);
+        String hash = TokenUtils.sha256Hex(rawEncoded.getBytes());
 
         Instant now = Instant.now();
         Instant exp = now.plus(props.getAuth().getToken().getTtlMinutes(), ChronoUnit.MINUTES);

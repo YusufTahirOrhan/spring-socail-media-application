@@ -23,10 +23,9 @@ public class AuthFilter implements Filter {
             HttpServletRequest http = (HttpServletRequest) servletRequest;
             String header = http.getHeader("Authorization");
             if(header != null && header.startsWith("Bearer ")){
-                String raw = header.substring(7);
+                String raw = header.substring("Bearer ".length());
                 String hash = TokenUtils.sha256Hex(raw.getBytes());
                 Optional<Token> tok = tokens.findByTokenHashAndRevokedAtIsNull(hash);
-
                 if(tok.isPresent() && tok.get().isActive(Instant.now())){
                     var u = tok.get().getUser();
                     CurrentUserHolder.set(new CurrentUser(u.getId(), u.getUsername(), u.getRole()));

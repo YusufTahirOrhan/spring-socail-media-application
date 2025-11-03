@@ -68,6 +68,9 @@ public class UserService {
         if (user.isDeleted()){
             throw new ForbiddenException("User already deleted.");
         }
+        if(user.getRole().equals(Role.ADMIN)){
+            throw new ForbiddenException("Admin cannot delete self");
+        }
 
         user.setDeleted(true);
         users.save(user);
@@ -80,6 +83,9 @@ public class UserService {
         CurrentUser currentUser = authService.requireCurrent();
         if(currentUser.role() != Role.ADMIN){
             throw new ForbiddenException("Admin only");
+        }
+        if (currentUser.id().equals(id)) {
+            throw new ForbiddenException("Admin cannot delete self");
         }
 
         User user = users.findById(id).orElseThrow(()-> new NotFoundException("User not found"));

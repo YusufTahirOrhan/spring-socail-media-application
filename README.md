@@ -135,109 +135,65 @@ timestamp: Hatanın oluştuğu an (ISO-8601).
 **message:** Geliştiriciye yönelik, hatayı açıklayan net bir mesaj.
 
 ## API'lar
-Tüm korumalı uç noktalar Authorization: Bearer {{accessToken}} başlığını gerektirir.
+Tüm korumalı uç noktalar `Authorization: Bearer {{accessToken}}` başlığını gerektirir.
 
-AUTH
-```
-POST /api/auth/signup (Body: {username, password})
-```
-Yeni kullanıcı kaydı (rol varsayılan olarak USER).
-```
-POST /api/auth/login (Body: {username, password})
-```
-Başarılı girişte 200 OK ve token döner:
+### AUTH
+* `POST /api/auth/signup` (Body: `{username, password}`)
+    * Yeni kullanıcı kaydı (rol varsayılan olarak `USER`). `201 Created` ve yeni kullanıcı DTO'sunu döner.
+* `POST /api/auth/login` (Body: `{username, password}`)
+    * Başarılı girişte `200 OK` ve token döner:
+    ```json
+    {
+      "accessToken": "...",
+      "expiresInSeconds": 3600
+    }
+    ```
+* `POST /api/auth/logout`
+    * Aktif token'ı `revoked_at` olarak işaretleyerek geçersiz kılar.
+* `GET /api/auth/me`
+    * Aktif kullanıcının `{id, username, role}` bilgilerini döner.
 
-```JSON
+### USERS
+* `GET /api/users/{id}`
+    * Tekil kullanıcı profilini döner (Silinmiş kullanıcılar `404` döner).
+* `PUT /api/users/me/password` (Body: `{currentPassword, newPassword}`)
+    * Aktif kullanıcının şifresini günceller. Mevcut şifre doğrulaması yapılır.
+    * **Güvenlik:** Başarılı olursa, o kullanıcıya ait tüm aktif token'ları iptal eder (tüm cihazlardan çıkış yapılır).
+* `DELETE /api/users/me`
+    * Aktif kullanıcının hesabını "soft delete" (geri alınabilir silme) yapar.
+    * **Güvenlik:** Kullanıcının tüm aktif token'larını iptal eder. Adminler kendini bu yolla silemez.
+* `DELETE /api/admin/users/{id}` (Sadece `ADMIN` rolü)
+    * Belirtilen ID'ye sahip kullanıcıyı "soft delete" yapar ve tüm token'larını iptal eder. Adminler kendini bu yolla silemez.
 
-{
-  "accessToken": "...",
-  "expiresInSeconds": 3600
-}
-```
-```
-POST /api/auth/logout
-```
-Aktif token'ı revoked_at olarak işaretleyerek geçersiz kılar.
-```
-GET /api/auth/me
-```
-Aktif kullanıcının {id, username, role} bilgilerini döner.
+### POSTS
+* `POST /api/posts` (Tip: `multipart/form-data`)
+    * **Body:** `image` (Dosya) ve `description` (Metin, opsiyonel).
+    * `201 Created` yanıtı ve oluşturulan Post DTO'sunu döner.
+* `GET /api/posts/{id}`
+    * Post detaylarını (yazar, sayaçlar ve yorum listesi dahil) döner.
+* `PUT /api/posts/{id}` (Tip: `multipart/form-data`) (Sadece sahibi veya `ADMIN`)
+    * **Body:** `image` (Dosya, opsiyonel) ve `description` (Metin, opsiyonel).
+    * Postun resmini ve/veya açıklamasını günceller. `200 OK` ve güncellenmiş Post DTO'sunu döner.
+* `DELETE /api/posts/{id}` (Sadece sahibi veya `ADMIN`)
+    * Postu "soft delete" yapar. `204 No Content` döner.
+* `POST /api/posts/{id}/view`
+    * Postun `view_count` sayacını +1 artırır. `204 No Content` döner.
+* `GET /api/posts`
+    * Tüm aktif postları listeler (yorumlar hariç).
 
-USERS
-```
-GET /api/users/{id}
-```
-Tekil kullanıcı profilini döner (Silinmiş kullanıcılar 404 döner).
-```
-PUT /api/users/me/password (Body: {currentPassword, newPassword})
-```
-Aktif kullanıcının şifresini günceller. Mevcut şifre doğrulaması yapılır.
+### COMMENTS
+* `POST /api/posts/{id}/comments` (Body: `{content}`)
+    * İlgili posta yorum ekler. `200 OK` ve oluşturulan Yorum DTO'sunu döner.
+* `GET /api/posts/{id}/comments`
+    * İlgili postun yorumlarını listeler.
+* `DELETE /api/comments/{commentId}` (Sadece yorum sahibi, post sahibi veya `ADMIN`)
+    * Yorumu "soft delete" yapar. `204 No Content` döner.
 
-Güvenlik: Başarılı olursa, o kullanıcıya ait tüm aktif token'ları iptal eder (tüm cihazlardan çıkış yapılır).
-```
-DELETE /api/users/me
-```
-Aktif kullanıcının hesabını "soft delete" (geri alınabilir silme) yapar.
-
-Güvenlik: Kullanıcının tüm aktif token'larını iptal eder.
-```
-DELETE /api/admin/users/{id} (Sadece ADMIN rolü)
-```
-Belirtilen ID'ye sahip kullanıcıyı "soft delete" yapar ve tüm token'larını iptal eder.
-
-POSTS
-```
-POST /api/posts (Tip: multipart/form-data)
-```
-Body: image (Dosya) ve description (Metin, opsiyonel).
-
-201 Created yanıtı döner.
-```
-GET /api/posts/{id}
-```
-Post detaylarını (yazar, sayaçlar ve yorum listesi dahil) döner.
-```
-PUT /api/posts/{id} (Tip: multipart/form-data) (Sadece sahibi veya ADMIN)
-```
-Body: image (Dosya, opsiyonel) ve description (Metin, opsiyonel).
-
-Postun resmini ve/veya açıklamasını günceller.
-```
-DELETE /api/posts/{id} (Sadece sahibi veya ADMIN)
-```
-Postu "soft delete" yapar. 204 No Content döner.
-```
-POST /api/posts/{id}/view
-```
-Postun view_count sayacını +1 artırır.
-```
-GET /api/posts
-```
-Tüm aktif postları listeler (yorumlar hariç).
-
-COMMENTS
-```
-POST /api/posts/{id}/comments (Body: {content})
-```
-İlgili posta yorum ekler.
-```
-GET /api/posts/{id}/comments
-```
-İlgili postun yorumlarını listeler.
-```
-DELETE /api/comments/{commentId} (Sadece yorum sahibi, post sahibi veya ADMIN)
-```
-Yorumu "soft delete" yapar. 204 No Content döner.
-
-LIKES
-```
-POST /api/posts/{id}/likes
-```
-Postu beğenir (Kullanıcı başına tek beğeni, idempotent).
-```
-DELETE /api/posts/{id}/likes
-```
-Beğeniyi geri alır. 204 No Content döner.
+### LIKES
+* `POST /api/posts/{id}/likes`
+    * Postu beğenir (Kullanıcı başına tek beğeni, idempotent). `200 OK` (boş gövde) döner.
+* `DELETE /api/posts/{id}/likes`
+    * Beğeniyi geri alır. `204 No Content` döner.
 
 ## Dosya Yükleme (Resimler)
 Yüklemeler, proje kök dizininde (working directory) oluşturulan uploads/ klasörüne kaydedilir.
