@@ -1,0 +1,747 @@
+{
+	"info": {
+		"_postman_id": "7cf4c6c4-9e2e-4091-9919-e794c5c4b4c4",
+		"name": "Social API — Full Flow Runner",
+		"description": "End-to-end flow: signup A → admin login → admin delete A → signup B → user login → me → create/list/like/comment/update/unlike → change password → delete self → admin login → me",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "49657565",
+		"_collection_link": "https://orhanyusuftahir-6204058.postman.co/workspace/Yusuf-Tahir-Orhan's-Workspace~440bd020-5880-484f-8162-ae3e4aa23c6e/collection/49657565-7cf4c6c4-9e2e-4091-9919-e794c5c4b4c4?action=share&source=collection_link&creator=49657565"
+	},
+	"item": [
+		{
+			"name": "01) Signup UserA (to be deleted by ADMIN)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const ts = Date.now();",
+							"pm.environment.set('userA_username', `userA_${ts}`);",
+							"pm.environment.set('userA_password', 'UserA!2345');"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('201 Created', ()=>pm.response.to.have.status(201));",
+							"const j = pm.response.json();",
+							"pm.environment.set('userA_id', j.id);",
+							"// next",
+							"postman.setNextRequest('02) Admin Login');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"{{userA_username}}\",\n  \"password\": \"{{userA_password}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/signup",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"signup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "02) Admin Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('200 OK', ()=>pm.response.to.have.status(200));",
+							"const j = pm.response.json();",
+							"pm.environment.set('adminToken', j.accessToken);",
+							"// use admin for next operations",
+							"pm.environment.set('accessToken', j.accessToken);",
+							"postman.setNextRequest('03) Admin Delete UserA');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"{{adminUsername}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "03) Admin Delete UserA",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('204 No Content', ()=>pm.response.to.have.status(204));",
+							"postman.setNextRequest('04) Signup UserB (normal user)');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{adminToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/admin/users/{{userA_id}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"admin",
+						"users",
+						"{{userA_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "04) Signup UserB (normal user)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const ts = Date.now();",
+							"pm.environment.set('userB_username', `userB_${ts}`);",
+							"pm.environment.set('userB_password', 'UserB!2345');"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('201 Created', ()=>pm.response.to.have.status(201));",
+							"const j = pm.response.json();",
+							"pm.environment.set('userB_id', j.id);",
+							"postman.setNextRequest('05) UserB Login');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"{{userB_username}}\",\n  \"password\": \"{{userB_password}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/signup",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"signup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "05) UserB Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('200 OK', ()=>pm.response.to.have.status(200));",
+							"const j = pm.response.json();",
+							"pm.environment.set('userToken', j.accessToken);",
+							"pm.environment.set('accessToken', j.accessToken);",
+							"postman.setNextRequest('06) Me (UserB)');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"{{userB_username}}\",\n  \"password\": \"{{userB_password}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "06) Me (UserB)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('200 OK', ()=>pm.response.to.have.status(200));",
+							"postman.setNextRequest('07) Create Post (multipart)');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{userToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/me",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"me"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "07) Create Post (multipart)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('201 Created', ()=>pm.response.to.have.status(201));",
+							"const j = pm.response.json();",
+							"pm.environment.set('postId', j.id);",
+							"postman.setNextRequest('08) List Posts');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{userToken}}"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "image",
+							"description": "local file path",
+							"type": "file",
+							"src": "postman-cloud:///1f0b8f12-d713-4b70-a00f-3253ffe0873c"
+						},
+						{
+							"key": "description",
+							"value": "my first post",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/posts",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"posts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "08) List Posts",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('200 OK', ()=>pm.response.to.have.status(200));",
+							"postman.setNextRequest('09) Like Post');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/posts",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"posts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "09) Like Post",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('200 or 204', ()=>pm.expect([200,204]).to.include(pm.response.code));",
+							"postman.setNextRequest('10) Add Comment');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{userToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/posts/{{postId}}/likes",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"posts",
+						"{{postId}}",
+						"likes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "10) Add Comment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('200 OK', ()=>pm.response.to.have.status(200));",
+							"const j = pm.response.json();",
+							"pm.environment.set('commentId', j.id);",
+							"postman.setNextRequest('11) Update Post (multipart)');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{userToken}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"content\": \"first comment\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/posts/{{postId}}/comments",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"posts",
+						"{{postId}}",
+						"comments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "11) Update Post (multipart)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('200 OK', ()=>pm.response.to.have.status(200));",
+							"postman.setNextRequest('12) Delete Comment');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{userToken}}"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "image",
+							"value": "",
+							"description": "optional new image (leave empty to skip)",
+							"type": "file"
+						},
+						{
+							"key": "description",
+							"value": "updated description",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/posts/{{postId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"posts",
+						"{{postId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "12) Delete Comment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('204 No Content', ()=>pm.response.to.have.status(204));",
+							"postman.setNextRequest('13) Unlike Post');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{userToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/comments/{{commentId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"comments",
+						"{{commentId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "13) Unlike Post",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('200 or 204', ()=>pm.expect([200,204]).to.include(pm.response.code));",
+							"postman.setNextRequest('14) Update My Password');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{userToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/posts/{{postId}}/likes",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"posts",
+						"{{postId}}",
+						"likes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "14) Update My Password",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.set('userB_password_new', 'UserB!6789');"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('200 OK', ()=>pm.response.to.have.status(200));",
+							"// password change revokes all tokens; accessToken now invalid.",
+							"postman.setNextRequest('15) Delete Myself (should still work because filter uses current token only if valid)');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{userToken}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"currentPassword\": \"{{userB_password}}\",\n  \"newPassword\": \"{{userB_password_new}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/users/me/password",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"me",
+						"password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "15) Delete Myself",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('204 No Content', ()=>pm.response.to.have.status(204));",
+							"// user token is invalid now; clean it to be explicit",
+							"pm.environment.unset('userToken');",
+							"// final admin checks",
+							"postman.setNextRequest('16) Admin Login (again)');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/users/me",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"me"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "16) Admin Login (again)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('200 OK', ()=>pm.response.to.have.status(200));",
+							"const j = pm.response.json();",
+							"pm.environment.set('adminToken', j.accessToken);",
+							"pm.environment.set('accessToken', j.accessToken);",
+							"postman.setNextRequest('17) Me (Admin)');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"{{adminUsername}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "17) Me (Admin)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('200 OK', ()=>pm.response.to.have.status(200));",
+							"// end",
+							"postman.setNextRequest(null);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{adminToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/me",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"me"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

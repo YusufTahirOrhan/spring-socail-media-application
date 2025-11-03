@@ -195,6 +195,13 @@ Tüm korumalı uç noktalar `Authorization: Bearer {{accessToken}}` başlığın
 * `DELETE /api/posts/{id}/likes`
     * Beğeniyi geri alır. `204 No Content` döner.
 
+---
+### Postman Notu: Dosya Yükleme (Multipart)
+
+Postman koleksiyonundaki (Tüm API'ların bulunduğu (Social API — All APIs) ve API akışı (Social API — Full Flow Runner) Collection'larında `POST /api/posts` ve`PUT /api/posts/{id}`) dosya yükleme istekleri, `image` anahtarı için "File" tipini kullanır.
+
+Koleksiyonu import ettiğinizde, bu isteklerdeki `image` alanı için varsayılan bir dosya yolu (`src`) bulunabilir (veya boş olabilir). Bu istekleri test etmek için lütfen **"Select Files"** butonuna basarak kendi bilgisayarınızdan bir resim dosyasını **manuel olarak** seçiniz. Environment değişkenleri dosya yollarını dinamik olarak işleyemez.
+
 ## Dosya Yükleme (Resimler)
 Yüklemeler, proje kök dizininde (working directory) oluşturulan uploads/ klasörüne kaydedilir.
 
@@ -214,3 +221,4 @@ image_path olarak veritabanına FileStorageService tarafından üretilen tam URL
 **Dosya Temizliği:** Post güncellendiğinde veya silindiğinde, `uploads/` klasöründeki eski/yetim kalan resim dosyaları *silinmez*. Bu işlem, genellikle asenkron bir 'çöp toplama' (garbage collection) işi olarak ele alındığı için **bu servisin mevcut kapsamı dışında bırakılmıştır** (Gerçek bir uygulamada bu işlem bir 'garbage collector' veya CDN lifecycle kuralı ile yönetilmelidir).
 
 **Limitler:** Güvenlik için application.properties'de 5MB dosya yükleme limiti belirlenmiştir, ancak API "rate limiting" (örn: brute-force login denemelerini engelleme) içermemektedir. Bu, ikinci bir fazda Redis tabanlı bir sayaç mekanizması ile eklenebilir.
+

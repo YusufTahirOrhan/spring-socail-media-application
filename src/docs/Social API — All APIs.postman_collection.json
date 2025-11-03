@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "9b6255e4-523e-4ff1-851f-c04ab5263f8c",
-		"name": "Social API (Spring Boot) — Case Study",
+		"name": "Social API — All APIs",
 		"description": "Mini social media service. Security: custom opaque token in DB.\nFlow: signup → login → authorized ops → logout.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "49657565",
